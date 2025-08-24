@@ -1,0 +1,90 @@
+<html lang="es"><head><meta charset="UTF-8"><title>Bit2Web</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script src="https://cdn.tailwindcss.com"></script><style>body{background:#f9fafb;color:#111;font-family:Inter,sans-serif}h1{color:#111}.shadow-glow{box-shadow:0 4px 20px rgba(0,0,0,.1)}.led{border-radius:50%;width:60px;height:60px;margin:10px;transition:all .4s}#ledCenter{width:80px;height:80px;border-radius:50%;transition:all .4s;margin-bottom:1rem;box-shadow:0 0 15px rgba(0,0,0,.1)}input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:#ddd;outline:0}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#4f46e5;cursor:pointer;box-shadow:0 0 4px rgba(0,0,0,.2)}input[type=color]{width:50px;height:30px;padding:0;border:none;margin-left:5px;cursor:pointer}label{font-size:.85rem;color:#333;font-weight:500}.config-section{background:#fff;padding:1rem;border-radius:12px;margin-bottom:1rem;box-shadow:0 0 10px rgba(0,0,0,.05)}.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}.warning{padding:.5rem 1rem;border-radius:10px;margin:.25rem 0;font-weight:500;display:flex;align-items:center;gap:.5rem;animation:fadeSlide .4s}.warning-low{background:#fef3c7;border-left:4px solid #fbbf24;color:#92400e}.warning-medium{background:#fed7d7;border-left:4px solid #ef4444;color:#991b1b}.warning-high{background:#d1fae5;border-left:4px solid #10b981;color:#065f46}@keyframes fadeSlide{0%{opacity:0;transform:translateX(-10px)}100%{opacity:1;transform:translateX(0)}}</style></head><body class="flex flex-col items-center p-6 bg-gray-100"><header class="flex items-center justify-between w-full max-w-6xl p-4 mb-6 bg-white rounded-xl shadow-md"><div class="flex items-center gap-3"><svg class="w-10 h-10 text-indigo-600" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="flex flex-col"><h1 class="text-2xl font-bold text-gray-800">Bit2Web</h1><span class="text-sm text-gray-500">Conecta tu microbit directo a la web</span></div></div><div class="text-sm text-gray-400">v1.4</div></header><div class="flex flex-col md:flex-row w-full max-w-6xl space-x-0 md:space-x-6"><div class="flex-1 flex flex-col items-center bg-white p-6 rounded-xl shadow-glow mb-6 md:mb-0"><div id="ledCenter" class="bg-red-500"></div><div class="w-full mb-4"><label>Velocidad envío (ms)</label> <input type="range" min="200" max="2000" step="100" value="1000" id="velocidadSlider"><p class="text-gray-500 text-sm mt-1">Actual: <span id="velocidadActual">1000</span> ms</p></div><div id="warningsPanel" class="w-full mb-2"></div><div id="warningsHistorial" class="w-full text-sm text-gray-400 mb-4 max-h-40 overflow-y-auto"></div><div class="config-section w-full"><h3 class="font-bold mb-3 text-gray-800">Configuración</h3><div class="config-grid"><div><label>Temp: Bajo / Medio / Alto</label><br><input type="number" id="thTempLow" value="0" class="border rounded p-1 w-full"> <input type="number" id="thTempMed" value="35" class="border rounded p-1 w-full"> <input type="number" id="thTempHigh" value="40" class="border rounded p-1 w-full"></div><div><label>Luz: Bajo / Medio / Alto</label><br><input type="number" id="thLuzLow" value="10" class="border rounded p-1 w-full"> <input type="number" id="thLuzMed" value="50" class="border rounded p-1 w-full"> <input type="number" id="thLuzHigh" value="80" class="border rounded p-1 w-full"></div><div><label>Aceleración máxima</label> <input type="number" id="thAcc" value="8" class="border rounded p-1 w-full"></div><div><label>Colores Temp (Bajo/Medio/Alto)</label><br><input type="color" id="colorTempNormal" value="#F87171"> <input type="color" id="colorTempMed" value="#FED7D7"> <input type="color" id="colorTempHigh" value="#EF4444"></div><div><label>Colores Luz (Bajo/Medio/Alto)</label><br><input type="color" id="colorLuzNormal" value="#FBBF24"> <input type="color" id="colorLuzMed" value="#FED7D7"> <input type="color" id="colorLuzHigh" value="#EF4444"></div><div><label>Colores Acc (Bajo/Alto)</label><br><input type="color" id="colorAccNormal" value="#60A5FA"> <input type="color" id="colorAccHigh" value="#10B981"></div></div></div></div><div class="flex-1 flex flex-col bg-white p-6 rounded-xl shadow-glow"><div class="mb-4"><canvas id="sensorChart" height="250"></canvas></div><div class="grid grid-cols-2 gap-2 text-gray-700 mb-4"><div>Luz: <span id="valLuz">0</span></div><div>Temp: <span id="valTemp">0</span></div><div>Acc X: <span id="valAccX">0</span></div><div>Acc Y: <span id="valAccY">0</span></div><div>Acc Z: <span id="valAccZ">0</span></div><div>Velocidad: <span id="valVel">1</span></div></div><div><h3 class="font-bold text-gray-800 mb-2">Últimos 20 envíos</h3><ul id="historial" class="text-gray-600 text-sm list-disc pl-5 max-h-60 overflow-y-auto"></ul></div></div></div><script>let config = {  
+  thresholds: {temp:{low:0,med:35,high:40},luz:{low:10,med:50,high:80},acc:8},  
+  colors:{temp:{normal:'#F87171',med:'#FED7D7',high:'#EF4444'},luz:{normal:'#FBBF24',med:'#FED7D7',high:'#EF4444'},acc:{normal:'#60A5FA',high:'#10B981'}}  
+};  
+let chartData={labels:[],datasets:[  
+  {label:'Luz',data:[],borderColor:'#FBBF24',fill:false,tension:0.3,pointRadius:4},  
+  {label:'Temp',data:[],borderColor:'#F87171',fill:false,tension:0.3,pointRadius:4},  
+  {label:'Acc X',data:[],borderColor:'#60A5FA',fill:false,tension:0.3,pointRadius:4},  
+  {label:'Acc Y',data:[],borderColor:'#34D399',fill:false,tension:0.3,pointRadius:4},  
+  {label:'Acc Z',data:[],borderColor:'#A78BFA',fill:false,tension:0.3,pointRadius:4}  
+]};  
+let ctx=document.getElementById('sensorChart').getContext('2d');  
+let myChart=new Chart(ctx,{type:'line',data:chartData,options:{animation:false,responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#111'}}},scales:{x:{title:{display:true,text:'Tiempo (ms)',color:'#111'},ticks:{color:'#111'}},y:{title:{display:true,text:'Valor',color:'#111'},ticks:{color:'#111'}}}}});  
+  
+let ts=0,velocidad=1000;  
+const historial=[],historialWarnings=[];  
+const ledCenter=document.getElementById('ledCenter');  
+  
+function generateData(){ts+=velocidad;return{ts,luz:Math.floor(Math.random()*100),temp:Math.floor(Math.random()*40),accX:Math.floor(Math.random()*20-10),accY:Math.floor(Math.random()*20-10),accZ:Math.floor(Math.random()*20-10),velocidad};}  
+function getLevel(value,thresholds){if(value>=thresholds.high)return'high';else if(value>=thresholds.med)return'medium';else return'low';}  
+  
+function updateWarnings(data){  
+  const panel=document.getElementById('warningsPanel');panel.innerHTML='';  
+  const warnings=[];  
+  if(data.temp>=config.thresholds.temp.med) warnings.push({msg:'❗ Temperatura alta!',level:getLevel(data.temp,config.thresholds.temp)});  
+  if(data.luz<=config.thresholds.luz.med) warnings.push({msg:'⚠️ Luz baja!',level:getLevel(data.luz,config.thresholds.luz)});  
+  if(Math.abs(data.accX)>config.thresholds.acc||Math.abs(data.accY)>config.thresholds.acc||Math.abs(data.accZ)>config.thresholds.acc) warnings.push({msg:'🚨 Aceleración alta!',level:'high'});  
+  warnings.forEach(w=>{  
+    const div=document.createElement('div');div.className=`warning warning-${w.level}`;div.textContent=w.msg;panel.appendChild(div);  
+    historialWarnings.unshift(`${w.msg} (TS:${data.ts})`);if(historialWarnings.length>20) historialWarnings.pop();  
+  });  
+  document.getElementById('warningsHistorial').innerHTML=historialWarnings.join('<br>');  
+}  
+  
+function updateDisplay(data){  
+  chartData.labels.push(data.ts);  
+  chartData.datasets[0].data.push(data.luz);  
+  chartData.datasets[1].data.push(data.temp);  
+  chartData.datasets[2].data.push(data.accX);  
+  chartData.datasets[3].data.push(data.accY);  
+  chartData.datasets[4].data.push(data.accZ);  
+  if(chartData.labels.length>50){chartData.labels.shift();chartData.datasets.forEach(d=>d.data.shift());}  
+  myChart.update();  
+  
+  const lvlTemp=getLevel(data.temp,config.thresholds.temp);  
+  let now=Date.now();let fade=Math.round((Math.sin(now/velocidad*Math.PI)+1)*50+50);  
+  ledCenter.style.background=config.colors.temp[lvlTemp];ledCenter.style.boxShadow=`0 0 ${fade/2}px ${config.colors.temp[lvlTemp]}`;  
+  
+  document.getElementById('valLuz').textContent=data.luz;  
+  document.getElementById('valTemp').textContent=data.temp;  
+  document.getElementById('valAccX').textContent=data.accX;  
+  document.getElementById('valAccY').textContent=data.accY;  
+  document.getElementById('valAccZ').textContent=data.accZ;  
+  document.getElementById('valVel').textContent=data.velocidad;  
+  
+  historial.unshift(`TS:${data.ts} Luz:${data.luz} Temp:${data.temp} AccX:${data.accX}`);  
+  if(historial.length>20) historial.pop();  
+  const ul=document.getElementById('historial');ul.innerHTML='';historial.forEach(h=>{const li=document.createElement('li');li.textContent=h;ul.appendChild(li)});  
+  
+  updateWarnings(data);  
+}  
+  
+document.getElementById('velocidadSlider').addEventListener('input',e=>{velocidad=parseInt(e.target.value);document.getElementById('velocidadActual').textContent=velocidad;});  
+  
+['thTempLow','thTempMed','thTempHigh','thLuzLow','thLuzMed','thLuzHigh','thAcc'].forEach(id=>{  
+  document.getElementById(id).addEventListener('change',()=>{  
+    config.thresholds.temp.low=parseInt(document.getElementById('thTempLow').value);  
+    config.thresholds.temp.med=parseInt(document.getElementById('thTempMed').value);  
+    config.thresholds.temp.high=parseInt(document.getElementById('thTempHigh').value);  
+    config.thresholds.luz.low=parseInt(document.getElementById('thLuzLow').value);  
+    config.thresholds.luz.med=parseInt(document.getElementById('thLuzMed').value);  
+    config.thresholds.luz.high=parseInt(document.getElementById('thLuzHigh').value);  
+    config.thresholds.acc=parseInt(document.getElementById('thAcc').value);  
+  });  
+});  
+  
+['colorTempNormal','colorTempMed','colorTempHigh','colorLuzNormal','colorLuzMed','colorLuzHigh','colorAccNormal','colorAccHigh'].forEach(id=>{  
+  document.getElementById(id).addEventListener('input',()=>{  
+    config.colors.temp.normal=document.getElementById('colorTempNormal').value;  
+    config.colors.temp.med=document.getElementById('colorTempMed').value;  
+    config.colors.temp.high=document.getElementById('colorTempHigh').value;  
+    config.colors.luz.normal=document.getElementById('colorLuzNormal').value;  
+    config.colors.luz.med=document.getElementById('colorLuzMed').value;  
+    config.colors.luz.high=document.getElementById('colorLuzHigh').value;  
+    config.colors.acc.normal=document.getElementById('colorAccNormal').value;  
+    config.colors.acc.high=document.getElementById('colorAccHigh').value;  
+  });  
+});  
+  
+setInterval(()=>{const data=generateData();updateDisplay(data);},200);</script></body></html>
